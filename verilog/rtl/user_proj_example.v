@@ -71,95 +71,113 @@ module user_proj_example #(
     wire clk;
     wire rst;
 
-    wire [`MPRJ_IO_PADS-1:0] io_in;
-    wire [`MPRJ_IO_PADS-1:0] io_out;
-    wire [`MPRJ_IO_PADS-1:0] io_oeb;
+	wire [31:0]x;
+	wire [31:0]y;
+	wire [31:0]z;
 
-    wire [31:0] rdata; 
-    wire [31:0] wdata;
-    wire [BITS-1:0] count;
-
-    wire valid;
-    wire [3:0] wstrb;
-    wire [31:0] la_write;
 
     // WB MI A
-    assign valid = wbs_cyc_i && wbs_stb_i; 
-    assign wstrb = wbs_sel_i & {4{wbs_we_i}};
-    assign wbs_dat_o = rdata;
-    assign wdata = wbs_dat_i;
+    assign wbs_dat_o = 31'h0;
+    assign wbs_ack_o = 1'b0;
 
     // IO
-    assign io_out = count;
+    assign io_out = x;
     assign io_oeb = {(`MPRJ_IO_PADS-1){rst}};
 
     // IRQ
     assign irq = 3'b000;	// Unused
 
     // LA
-    assign la_data_out = {{(127-BITS){1'b0}}, count};
-    // Assuming LA probes [63:32] are for controlling the count register  
-    assign la_write = ~la_oenb[63:32] & ~{BITS{valid}};
-    // Assuming LA probes [65:64] are for controlling the count clk & reset  
-    assign clk = (~la_oenb[64]) ? la_data_in[64]: wb_clk_i;
-    assign rst = (~la_oenb[65]) ? la_data_in[65]: wb_rst_i;
+    assign la_data_out = {{32{1'b0}}, z, y, x};
+	
+    // Assuming LA probes [97:96] are for controlling the count clk & reset  
+    assign clk = (~la_oenb[96]) ? la_data_in[96]: wb_clk_i;
+    assign rst = (~la_oenb[97]) ? la_data_in[97]: wb_rst_i;
 
-    counter #(
-        .BITS(BITS)
-    ) counter(
+    rng_chaos_scroll u_rng_chaos_chaos(
         .clk(clk),
-        .reset(rst),
-        .ready(wbs_ack_o),
-        .valid(valid),
-        .rdata(rdata),
-        .wdata(wbs_dat_i),
-        .wstrb(wstrb),
-        .la_write(la_write),
-        .la_input(la_data_in[63:32]),
-        .count(count)
+        .rst(rst),
+		.x(x),
+		.y(y),
+		.z(z)
     );
 
 endmodule
 
-module counter #(
-    parameter BITS = 32
-)(
-    input clk,
-    input reset,
-    input valid,
-    input [3:0] wstrb,
-    input [BITS-1:0] wdata,
-    input [BITS-1:0] la_write,
-    input [BITS-1:0] la_input,
-    output ready,
-    output [BITS-1:0] rdata,
-    output [BITS-1:0] count
+module rng_chaos_scroll(
+	input	 			clk, 
+	input 				rst, 
+	output reg [31:0]	x, 
+	output reg [31:0]	y, 
+	output reg [31:0]	z
 );
-    reg ready;
-    reg [BITS-1:0] count;
-    reg [BITS-1:0] rdata;
 
-    always @(posedge clk) begin
-        if (reset) begin
-            count <= 0;
-            ready <= 0;
-        end else begin
-            ready <= 1'b0;
-            if (~|la_write) begin
-                count <= count + 1;
-            end
-            if (valid && !ready) begin
-                ready <= 1'b1;
-                rdata <= count;
-                if (wstrb[0]) count[7:0]   <= wdata[7:0];
-                if (wstrb[1]) count[15:8]  <= wdata[15:8];
-                if (wstrb[2]) count[23:16] <= wdata[23:16];
-                if (wstrb[3]) count[31:24] <= wdata[31:24];
-            end else if (|la_write) begin
-                count <= la_write & la_input;
-            end
-        end
-    end
+// wires                                                                   
+wire [31:0] xn, xo;                                                       
+wire [31:0] yn, yo;                                                       
+wire [31:0] zn, zo, zd, zd1, zd2;                                                 
+
+wire [ 3:0] Lx;                                                            
+wire [ 2:0] Ux;                                                             
+
+assign Lx = 4'b1011;                                                      
+assign Ux = 3'b100;
+
+func F_func(                                                     
+    .F_i(x),                                                               
+    .U_i(Ux),                                                              
+    .L_i(Lx),                                                              
+    .F_o(xo)                                                               
+    );                                                                            
+
+assign yo = y;
+assign zo = z;
+
+assign zd1 = xo+yo+zo;
+assign zd2 = {{4{ zd1[31]}},  zd1[31:4]};                        
+assign zd =   zd1 - zd2;
+
+assign xn = x + {{3{yo[31]}}, yo[31:3]};
+assign yn = y + {{3{zo[31]}}, zo[31:3]};
+assign zn = z - {{3{zd[31]}}, zd[31:3]}; 
+
+always @(posedge clk or negedge rst)                                                    
+begin                                                                      
+	if(!rst) begin                                                      
+        x <= 32'hDE78D681;                                                          
+        y <= 32'hFEEE4640;                                                         
+        z <= 32'hFE8E511B;                                                          
+	end else begin                                                            
+		x <= xn;                                                                 
+		y <= yn;                                                                 
+		z <= zn;                                                             
+	end	                                                                      
+end
 
 endmodule
+
+module func(
+    input   [31:0] F_i,
+    input   [ 2:0] U_i,
+    input   [ 3:0] L_i,
+    output  [31:0] F_o
+    );   
+ 
+ wire [ 5:0] Xhigh;
+ wire [ 5:0] X26_6n;
+ wire [ 5:0] Se_U;
+ wire [ 5:0] XU;
+ wire [ 5:0] XU_X26;
+ wire [ 5:0] out_6b;
+
+  assign Xhigh  = F_i[31:26] - {L_i[3],L_i,1'b1};
+  assign X26_6n = ~{6{F_i[26]}};
+  assign Se_U   = {U_i[2],U_i[2],U_i,1'b1};
+  assign XU     = F_i[31:26] - Se_U;
+  assign XU_X26 = (XU[5]) ? X26_6n : XU;
+  assign out_6b = (Xhigh[5]) ?  Xhigh : XU_X26;
+  assign F_o = {out_6b, F_i[25:0]};
+
+endmodule
+
 `default_nettype wire

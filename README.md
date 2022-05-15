@@ -1,12 +1,11 @@
-# Caravel User Project
+# RNG CHAOS SCROLL
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![UPRJ_CI](https://github.com/efabless/caravel_project_example/actions/workflows/user_project_ci.yml/badge.svg)](https://github.com/efabless/caravel_project_example/actions/workflows/user_project_ci.yml) [![Caravel Build](https://github.com/efabless/caravel_project_example/actions/workflows/caravel_build.yml/badge.svg)](https://github.com/efabless/caravel_project_example/actions/workflows/caravel_build.yml)
-
-| :exclamation: Important Note            |
-|-----------------------------------------|
-
-## Please fill in your project documentation in this README.md file 
-
-Refer to [README](docs/source/quickstart.rst) for a quick start of how to use caravel_user_project
-
-Refer to [README](docs/source/index.rst) for this sample project documentation. 
+Chaotic systems are deterministic and bounded in phase space, 
+but they have positive Lyapunov exponents leading to completely 
+divergent signals even for very small perturbations in initial conditions. 
+Therefore, chaotic oscillators are frequently employed in Random Number Generator(RNG) 
+applications where repeatable, secure and high-performance entropy sources are required. 
+Chaotic oscillators can be implemented in either analog or digital circuits, 
+but chaotic oscillators implemented in the digital domain are preferable for ease of 
+integration to digital systems. In this study, a digital RNG based on chaotic oscillators 
+was implemented using the SKY130 process node.
