@@ -25,6 +25,10 @@
 		- Checks counter value through the wishbone port
 */
 
+#define reg_x_init_data (*volatile uint32_t*)0x30000000)
+#define reg_y_init_data (*volatile uint32_t*)0x30000004)
+#define reg_z_init_data (*volatile uint32_t*)0x30000008)
+
 void main()
 {
 
@@ -84,4 +88,12 @@ void main()
     if (reg_mprj_slave == 0x2B3D) {
         reg_mprj_datal = 0xAB610000;
     }
+
+	(*(volatile uint32_t*)0x30000004) = 0xAAAAAAAA;
+	(*(volatile uint32_t*)0x30000008) = 0xBBBBBBBB;
+	(*(volatile uint32_t*)0x3000000c) = 0xCCCCCCCC;
+	(*(volatile uint32_t*)0x30000010) = 0xDDDDDDDD;
+	(*(volatile uint32_t*)0x30000014) = 0xffffffff;
+	
+	
 }
