@@ -88,7 +88,7 @@ localparam [31:0] Z_INIT = 32'hFE8E511B;
 	reg [3:0]rng_en;
 	reg smp_en;
 
-    //WRITE REGS WITH WISHBOND
+    //WRITE REGS WITH WISHBONE
 	always @(posedge wb_clk_i) begin 
 		if (wb_rst_i) begin
 			x_init <= X_INIT;
@@ -114,7 +114,7 @@ localparam [31:0] Z_INIT = 32'hFE8E511B;
 		end
 	end
 	
-	//READ REGS WITH WISHBOND
+	//READ REGS WITH WISHBONE
 	always @(posedge wb_clk_i) begin 
 		if (wb_rst_i) begin
 			wbs_dat_o <= 32'h0;
@@ -134,7 +134,7 @@ localparam [31:0] Z_INIT = 32'hFE8E511B;
 		end
 	end
 	
-	// ACK WISHBOND
+	// ACK WISHBONE
 	always @(posedge wb_clk_i) begin 
 		if (wb_rst_i) begin
 			wbs_ack_o <= 1'b0;
