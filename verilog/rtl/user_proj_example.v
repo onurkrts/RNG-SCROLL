@@ -159,7 +159,7 @@ localparam [31:0] Z_INIT = 32'hFE8E511B;
 
     // IO
     assign io_out = x;
-    assign io_oeb = {(`MPRJ_IO_PADS-1){rst}};
+    assign io_oeb = {(`MPRJ_IO_PADS-1){1'b1}};
 
     // IRQ
     assign irq = 3'b000;	// Unused
